@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Samples.AzureOpenAI.LineBotAPI.Extensions;
 
 namespace Samples.AzureOpenAI.LineBotAPI.Services

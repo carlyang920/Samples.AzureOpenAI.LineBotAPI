@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Samples.AzureOpenAI.LineBotAPI.Extensions;
 using Samples.AzureOpenAI.LineBotAPI.Models;
 using Samples.AzureOpenAI.LineBotAPI.Models.ChatGPT;
 using Samples.AzureOpenAI.LineBotAPI.Services;
