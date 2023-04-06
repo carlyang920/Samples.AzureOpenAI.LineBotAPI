@@ -3,12 +3,13 @@
     public class RequestChatGPTModel
     {
         public List<Message> messages { get; set; }
-        public double temperature { get; set; } = 0.7;
+        public double temperature { get; set; } = 0.13;
         public double top_p { get; set; } = 0.95;
         public int frequency_penalty { get; set; } = 0;
         public int presence_penalty { get; set; } = 0;
         public int max_tokens { get; set; } = 800;
         public object? stop { get; set; } = null;
+        public bool stream { get; set; } = false;
     }
 
     public class Message

@@ -16,8 +16,13 @@ Before run this project, please complete all configuration first.
   "AzureOpenAIConfig": {
     "Address": "[Your Azure OpenAI Service address]",
     "APIKey": "[Your Azure OpenAI Service API Key]",
-    "RecentN": 10,
-    "MaxTokens": 800
+    "RecentN": 20,
+    "MaxTokens": 20000,
+    "Temperature": 0.13,
+    "TopP": 0.95,
+    "FrequencyPenalty": 0,
+    "PresencePenalty": 0,
+    "Stream": false
   },
   "LineBotConfig": {
     "AccessToken": "[Your Line Messaging API Access Token]",

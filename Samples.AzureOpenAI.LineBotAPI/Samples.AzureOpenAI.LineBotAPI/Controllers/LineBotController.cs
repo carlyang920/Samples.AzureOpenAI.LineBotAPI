@@ -79,15 +79,41 @@ namespace Samples.AzureOpenAI.LineBotAPI.Controllers
                     }
 
                     //Save current message first
-                    _cacheService.SetValue(userId!, e.message.text);
+                    _cacheService.SetValue(userId!,
+                        JsonConvert.SerializeObject(new Message() {role = "user", content = e.message.text}));
 
                     var recentN = !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("RecentN")}")
                         ? int.Parse($"{Environment.GetEnvironmentVariable("RecentN")}")
                         : _config.AzureOpenAiConfig.RecentN;
 
-                    var maxTokens = !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("MaxTokens")}")
-                        ? int.Parse($"{Environment.GetEnvironmentVariable("MaxTokens")}")
-                        : _config.AzureOpenAiConfig.MaxTokens;
+                    var messages = _cacheService.GetValues(userId!, recentN)
+                        .Select(m => JsonConvert.DeserializeObject<Message>(m) ?? new Message())
+                        .Where(m => !string.IsNullOrEmpty(m.content))
+                        .ToList();
+                    var temperature =
+                        !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("temperature")}")
+                            ? double.Parse($"{Environment.GetEnvironmentVariable("temperature")}")
+                            : _config.AzureOpenAiConfig.Temperature;
+                    var max_tokens =
+                        !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("MaxTokens")}")
+                            ? int.Parse($"{Environment.GetEnvironmentVariable("MaxTokens")}")
+                            : _config.AzureOpenAiConfig.MaxTokens;
+                    var top_p = !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("top_p")}")
+                        ? double.Parse($"{Environment.GetEnvironmentVariable("top_p")}")
+                        : _config.AzureOpenAiConfig.TopP;
+                    var frequency_penalty =
+                        !string.IsNullOrEmpty(
+                            $"{Environment.GetEnvironmentVariable("frequency_penalty")}")
+                            ? int.Parse($"{Environment.GetEnvironmentVariable("frequency_penalty")}")
+                            : _config.AzureOpenAiConfig.FrequencyPenalty;
+                    var presence_penalty =
+                        !string.IsNullOrEmpty(
+                            $"{Environment.GetEnvironmentVariable("presence_penalty")}")
+                            ? int.Parse($"{Environment.GetEnvironmentVariable("presence_penalty")}")
+                            : _config.AzureOpenAiConfig.PresencePenalty;
+                    var stream = !string.IsNullOrEmpty($"{Environment.GetEnvironmentVariable("stream")}")
+                        ? bool.Parse($"{Environment.GetEnvironmentVariable("stream")}")
+                        : _config.AzureOpenAiConfig.Stream;
 
                     var answer = _openAIService.RequestAsync<ResponseChatGPTModel>(
                             HttpMethod.Post,
@@ -95,9 +121,13 @@ namespace Samples.AzureOpenAI.LineBotAPI.Controllers
                                 new RequestChatGPTModel()
                                 {
                                     //Get recent N messages
-                                    messages = _cacheService.GetValues(userId!, recentN)
-                                        .Select(m => new Message() {role = "user", content = m}).ToList(),
-                                    max_tokens = maxTokens
+                                    messages = messages,
+                                    temperature = temperature,
+                                    max_tokens = max_tokens,
+                                    top_p = top_p,
+                                    frequency_penalty = frequency_penalty,
+                                    presence_penalty = presence_penalty,
+                                    stream = stream
                                 }
                             )
                         )
@@ -121,11 +151,16 @@ namespace Samples.AzureOpenAI.LineBotAPI.Controllers
 
                     answer?.choices.ForEach(c =>
                     {
+                        var replyMsg = Regex.Replace(c.message.content, "<\\|[a-zA-Z0-9-_]+\\|>", string.Empty);
+
                         replyMessages.Add(new BaseMessage
                         {
                             type = "text",
-                            text = Regex.Replace(c.message.content, "<\\|[a-zA-Z0-9-_]+\\|>", string.Empty)
+                            text = replyMsg
                         });
+
+                        _cacheService.SetValue(userId!,
+                            JsonConvert.SerializeObject(new Message() {role = "assistant", content = replyMsg}));
                     });
 
                     _lineBotService.ReplyAsync<dynamic>(
@@ -191,7 +226,7 @@ namespace Samples.AzureOpenAI.LineBotAPI.Controllers
                 request.messages.ForEach(m =>
                 {
                     var msg = 1800 < m.Content.Length ? $"{m.Content[..1800]}...etc" : m.Content;
-                    pushMessage.messages.Add(new BaseMessage {type = "text", text = msg });
+                    pushMessage.messages.Add(new BaseMessage {type = "text", text = msg});
                 });
 
                 _lineBotService.PushAsync<dynamic>(

@@ -21,7 +21,12 @@
         public string? Address { get; set; }
         public string? APIKey { get; set; }
         public int RecentN { get; set; } = 10;
-        public int MaxTokens { get; set; } = 800;
+        public int MaxTokens { get; set; } = 20000;
+        public double Temperature { get; set; } = 0.13;
+        public double TopP { get; set; } = 0.95;
+        public int FrequencyPenalty { get; set; } = 0;
+        public int PresencePenalty { get; set; } = 0;
+        public bool Stream { get; set; } = false;
     }
 
     public class LineBotConfig
